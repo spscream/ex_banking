@@ -91,6 +91,13 @@ defmodule ExBankingTest do
     end
   end
 
+  describe "#deposit/3 with rate limit exceeded" do
+    test "returns {:error, :too_many_requests_to_user}", %{user: user} do
+      ExBanking.create_user(user, 0)
+      assert {:error, :too_many_requests_to_user} == ExBanking.deposit(user, 100, "rub")
+    end
+  end
+
   describe "#withdraw/3 with valid params and amount <= users balance in currency" do
     test "returns {:ok, new_balance}", %{user: user} do
       ExBanking.create_user(user)
@@ -166,6 +173,13 @@ defmodule ExBankingTest do
     end
   end
 
+  describe "#withdraw/3 with rate limit exceeded" do
+    test "returns {:error, :too_many_requests_to_user}", %{user: user} do
+      ExBanking.create_user(user, 0)
+      assert {:error, :too_many_requests_to_user} == ExBanking.withdraw(user, 100, "rub")
+    end
+  end
+
   describe "#get_balance/2 with valid params" do
     test "returns {:ok, balance}", %{user: user} do
       ExBanking.create_user(user)
@@ -200,6 +214,13 @@ defmodule ExBankingTest do
       for arg <- wrong_arguments do
         assert {:error, :wrong_arguments} == ExBanking.get_balance(user, arg)
       end
+    end
+  end
+
+  describe "#get_balance/2 with rate limit exceeded" do
+    test "returns {:error, :too_many_requests_to_user}", %{user: user} do
+      ExBanking.create_user(user, 0)
+      assert {:error, :too_many_requests_to_user} == ExBanking.get_balance(user, "rub")
     end
   end
 
@@ -265,6 +286,27 @@ defmodule ExBankingTest do
       for arg <- wrong_arguments do
         assert {:error, :wrong_arguments} == ExBanking.send(user, arg, 100, "rub")
       end
+    end
+  end
+
+  describe "#send/4 with sender rate limit exceeded" do
+    test "returns {:error, :too_many_requests_to_sender}" do
+      sender = random_string(16)
+      receiver = random_string(16)
+      ExBanking.create_user(sender, 0)
+      ExBanking.create_user(receiver, 10)
+      assert {:error, :too_many_requests_to_sender} == ExBanking.send(sender, receiver, 100, "rub")
+    end
+  end
+
+  describe "#send/4 with receiver rate limit exceeded" do
+    test "returns {:error, :too_many_requests_to_receiver}" do
+      sender = random_string(16)
+      receiver = random_string(16)
+      ExBanking.create_user(sender)
+      ExBanking.deposit(sender, 100, "rub")
+      ExBanking.create_user(receiver, 0)
+      assert {:error, :too_many_requests_to_receiver} == ExBanking.send(sender, receiver, 100, "rub")
     end
   end
 

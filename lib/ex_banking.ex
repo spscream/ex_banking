@@ -21,12 +21,21 @@ defmodule ExBanking do
   }
 
   @doc """
-  Function creates new user in the system
+  Function creates new user in the system with default requests limit.
   New user has zero balance of any currency
   """
-  @spec create_user(user :: String.t) :: :ok | banking_error
+  @spec create_user(user :: String.t) :: :ok  | banking_error
   def create_user(user) do
     apply_operation(CreateUser.make(user))
+  end
+
+  @doc """
+  Function creates new user in the system with specified rate limit.
+  New user has zero balance of any currency
+  """
+  @spec create_user(user :: String.t, requests_limit :: integer) :: :ok | banking_error
+  def create_user(user, requests_limit) do
+    apply_operation(CreateUser.make(user, requests_limit))
   end
 
   @doc """
