@@ -22,37 +22,37 @@ defmodule ExBanking.User do
     end
   end
 
-  def handle(%Deposit{user: user, amount: amount, currency: currency}) do
+  def handle(%Deposit{user: user} = op) do
     exec_with_user(user, fn() ->
-      with {:ok, balance} <-UserBalance.deposit(user, amount, currency)
+      with {:ok, balance} <- UserBalance.handle(op)
       do
         {:ok, balance.amount_number}
       end
     end)
   end
 
-  def handle(%Withdraw{user: user, amount: amount, currency: currency}) do
+  def handle(%Withdraw{user: user} = op) do
     exec_with_user(user, fn() ->
-      with {:ok, balance} <- UserBalance.withdraw(user, amount, currency)
+      with {:ok, balance} <- UserBalance.handle(op)
       do
         {:ok, balance.amount_number}
       end
     end)
   end
 
-  def handle(%GetBalance{user: user, currency: currency}) do
+  def handle(%GetBalance{user: user} = op) do
     exec_with_user(user, fn() ->
-      with {:ok, balance} <- UserBalance.get_balance(user, currency)
+      with {:ok, balance} <- UserBalance.handle(op)
       do
         {:ok, balance.amount_number}
       end
     end)
   end
 
-  def handle(%Send{from: sender, to: receiver, amount: amount, currency: currency}) do
+  def handle(%Send{from: sender, to: receiver} = op) do
     exec_with_user(sender, fn() ->
       exec_with_user(receiver, fn() ->
-        with {:ok, sender_balance, receiver_balance} <- UserBalance.send(sender, receiver, amount, currency)
+        with {:ok, sender_balance, receiver_balance} <- UserBalance.handle(op)
         do
           {:ok, sender_balance.amount_number, receiver_balance.amount_number}
         end
@@ -62,9 +62,8 @@ defmodule ExBanking.User do
     fn() -> {:error, :sender_does_not_exist} end)
   end
 
-  # User API
-
   # GenServer API
+
   def init(user) do
     {:ok, %User{name: user}}
   end

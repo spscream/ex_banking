@@ -2,7 +2,8 @@ defmodule ExBanking.UserBalance do
   use GenServer
   defstruct [:currency, :amount, :amount_number]
 
-  alias ExBanking.{User}
+  alias ExBanking.User
+  alias ExBanking.Actions.{Deposit, Withdraw, GetBalance, Send}
   alias __MODULE__
   alias Decimal, as: D
 
@@ -16,7 +17,7 @@ defmodule ExBanking.UserBalance do
                :on_existing_balance]
   end
 
-  def deposit(user, amount, currency) do
+  def handle(%Deposit{user: user, amount: amount, currency: currency}) do
     op = %BalanceOperation{
       user: user,
       currency: currency,
@@ -31,7 +32,7 @@ defmodule ExBanking.UserBalance do
     apply_balance_op(op)
   end
 
-  def withdraw(user, amount, currency) do
+  def handle(%Withdraw{user: user, amount: amount, currency: currency}) do
     op = %BalanceOperation{
       user: user,
       currency: currency,
@@ -46,7 +47,7 @@ defmodule ExBanking.UserBalance do
     apply_balance_op(op)
   end
 
-  def get_balance(user, currency) do
+  def handle(%GetBalance{user: user, currency: currency}) do
     op = %BalanceOperation{
       user: user,
       currency: currency,
@@ -57,7 +58,7 @@ defmodule ExBanking.UserBalance do
     apply_balance_op(op)
   end
 
-  def send(sender, receiver, amount, currency) do
+  def handle(%Send{from: sender, to: receiver, currency: currency, amount: amount}) do
     op = %BalanceOperation{
       user: sender,
       currency: currency,
