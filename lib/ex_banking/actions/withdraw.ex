@@ -1,6 +1,8 @@
 defmodule ExBanking.Actions.Withdraw do
   defstruct [:user, :amount, :currency]
   alias __MODULE__
+  alias Decimal, as: D
+  @precision Application.get_env(:ex_banking, :precision, 2)
 
   def make(user, amount, currency)
   when is_binary(user)
@@ -8,7 +10,8 @@ defmodule ExBanking.Actions.Withdraw do
    and amount > 0
    and is_binary(currency)
   do
-    {:ok, %Withdraw{user: user, amount: amount, currency: currency}}
+    decimal = amount |> D.new() |> D.round(@precision)
+    {:ok, %Withdraw{user: user, amount: decimal, currency: currency}}
   end
 
   def make(_user, _amount, _currency) do

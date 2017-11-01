@@ -24,26 +24,38 @@ defmodule ExBanking.User do
 
   def handle(%Deposit{user: user, amount: amount, currency: currency}) do
     exec_with_user(user, fn() ->
-      UserBalance.deposit(user, amount, currency)
+      with {:ok, balance} <-UserBalance.deposit(user, amount, currency)
+      do
+        {:ok, balance.amount_number}
+      end
     end)
   end
 
   def handle(%Withdraw{user: user, amount: amount, currency: currency}) do
     exec_with_user(user, fn() ->
-      UserBalance.withdraw(user, amount, currency)
+      with {:ok, balance} <- UserBalance.withdraw(user, amount, currency)
+      do
+        {:ok, balance.amount_number}
+      end
     end)
   end
 
   def handle(%GetBalance{user: user, currency: currency}) do
     exec_with_user(user, fn() ->
-      UserBalance.get_balance(user, currency)
+      with {:ok, balance} <- UserBalance.get_balance(user, currency)
+      do
+        {:ok, balance.amount_number}
+      end
     end)
   end
 
   def handle(%Send{from: sender, to: receiver, amount: amount, currency: currency}) do
     exec_with_user(sender, fn() ->
       exec_with_user(receiver, fn() ->
-        UserBalance.send(sender, receiver, amount, currency)
+        with {:ok, sender_balance, receiver_balance} <- UserBalance.send(sender, receiver, amount, currency)
+        do
+          {:ok, sender_balance.amount_number, receiver_balance.amount_number}
+        end
       end,
       fn() -> {:error, :receiver_does_not_exist} end)
     end,
