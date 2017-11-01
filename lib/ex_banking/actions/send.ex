@@ -1,0 +1,18 @@
+defmodule ExBanking.Actions.Send do
+  defstruct [:from, :to, :amount, :currency]
+  alias __MODULE__
+
+  def make(from_user, to_user, amount, currency)
+  when is_binary(from_user)
+   and is_binary(to_user)
+   and is_number(amount)
+   and amount > 0
+   and is_binary(currency)
+  do
+    {:ok, %Send{from: from_user, to: to_user, amount: amount, currency: currency}}
+  end
+
+  def make(_from_user, _to_user, _amount, _currency) do
+    {:error, :wrong_arguments}
+  end
+end
